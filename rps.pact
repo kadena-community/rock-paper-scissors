@@ -1,4 +1,10 @@
 (module rock-paper-scissors GOVERNANCE
+  @model [
+    (defproperty game-result(move1:string move2:string expected:string)
+      (when 
+        (and (= player1-move move1) (= player2-move move2))
+        (= result expected)))
+  ]
   (defcap GOVERNANCE() false)
 
   (defschema GAME
@@ -26,6 +32,17 @@
     player1-salt : string
     player2-move : string
     player2-salt : string)
+    @model [
+      (property (game-result "rock" "scissors" "Player 1 wins"))
+      (property (game-result "rock" "rock" "Draw"))
+      (property (game-result "rock" "paper" "Player 2 wins"))
+      (property (game-result "paper" "scissors" "Player 2 wins"))
+      (property (game-result "paper" "rock" "Player 1 wins"))
+      (property (game-result "paper" "paper" "Draw"))
+      (property (game-result "scissors" "scissors" "Draw"))
+      (property (game-result "scissors" "rock" "Player 2 wins"))
+      (property (game-result "scissors" "paper" "Player 1 wins"))
+    ]
     (with-read games id
       { 'player1      := player1
       , 'player2      := player2

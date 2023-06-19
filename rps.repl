@@ -64,3 +64,5 @@
     "scissors"
     "some-random-salt"))
 (commit-tx)
+
+(verify "rock-paper-scissors")

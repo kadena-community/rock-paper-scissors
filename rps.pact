@@ -38,9 +38,9 @@
         (= saved-player2-move (hash (format "{}-{}" [player2-move player2-salt])))
         "Player 2 revealed move does not match saved move")
         (cond ((= player1-move player2-move) "Draw")
-              ((and (= player1-move "Rock") (= player2-move "Scissors")) "Player 1 wins")
-              ((and (= player1-move "Scissors") (= player2-move "Paper")) "Player 1 wins")
-              ((and (= player1-move "Paper") (= player2-move "Rock")) "Player 1 wins")
+              ((and (= player1-move "rock") (= player2-move "scissors")) "Player 1 wins")
+              ((and (= player1-move "scissors") (= player2-move "paper")) "Player 1 wins")
+              ((and (= player1-move "paper") (= player2-move "rock")) "Player 1 wins")
               "Player 2 wins")))
   )
 

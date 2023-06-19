@@ -1,0 +1,66 @@
+(begin-tx)
+(load "rps.pact")
+(commit-tx)
+
+(begin-tx)
+(rock-paper-scissors.draw 
+  "game-lose"
+  "alice"
+  "bob"
+  (hash "rock-some-random-salt")
+  (hash "paper-some-random-salt"))
+(commit-tx)
+
+(begin-tx)
+(expect 
+  "Paper to win from rock"
+  "Player 2 wins"
+  (rock-paper-scissors.reveal
+    "game-lose"
+    "rock"
+    "some-random-salt"
+    "paper"
+    "some-random-salt"))
+(commit-tx)
+
+(begin-tx)
+(rock-paper-scissors.draw 
+  "game-draw"
+  "alice"
+  "bob"
+  (hash "rock-some-random-salt")
+  (hash "rock-some-random-salt"))
+(commit-tx)
+
+(begin-tx)
+(expect
+  "Rock to tie with rock"
+  "Draw"
+  (rock-paper-scissors.reveal
+    "game-draw"
+    "rock"
+    "some-random-salt"
+    "rock"
+    "some-random-salt"))
+(commit-tx)
+
+(begin-tx)
+(rock-paper-scissors.draw 
+  "game-win"
+  "alice"
+  "bob"
+  (hash "rock-some-random-salt")
+  (hash "scissors-some-random-salt"))
+(commit-tx)
+
+(begin-tx)
+(expect
+  "Rock to win of scissors"
+  "Player 2 wins"
+  (rock-paper-scissors.reveal
+    "game-win"
+    "rock"
+    "some-random-salt"
+    "scissors"
+    "some-random-salt"))
+(commit-tx)

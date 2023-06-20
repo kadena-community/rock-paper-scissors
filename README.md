@@ -2,7 +2,32 @@
 
 ## Introduce Formal Verification
 
+Definition of Formal Verification on wikipedia:
+
+> In the context of hardware and software systems, formal verification is the
+> act of proving or disproving the correctness of intended algorithms underlying
+> a system with respect to a certain formal specification or property, using
+> formal methods of mathematics.
+
+This can seem pretty daunting, I know it did for me. It feels like a very
+complicated system, that is out of reach for many developers. After using
+Formal Verification for a couple of months, I've changed my mind and with the
+steady stream of updates on the Formal Verification modules, I think it
+is a very strong asset any developer developing smart contracts should
+leverage.
+
 ## Why should we write Formal Verification
+
+Formal Verification allows you to specify the expected behaviors of your smart contract.
+You could specify your smart contract before you implement any logic. Allowing
+you to identify challenges upfront and come up with high level solutions. This
+way of thinking you to zoom in on a specific detail, while ignoring all other aspects.
+
+For example, I can zoom in on a single win condition of a game of Rock, Paper, Scissors,
+while ignoring all the other win conditions. All I specify is, that single win condition.
+Then I can proceed to specify the next win condition and so on. Like this, I know that
+if my smart contract can be Formal Verified, it satisfies all conditions without
+writing unit tests for all those use cases.
 
 ## Introduce our usecase
 
@@ -413,3 +438,10 @@ After cleaning up our code and redefining the moves as constants we end up with 
 ```
 
 ## Conclusion
+
+By specifying our desired outcome, we could without keeping the entire picture
+in mind, define our game. A game of Rock Paper Scissors, is still relatively
+easy to grasp, expand the game to have more options, and it get's increasingly
+difficult to keep all details in mind. With Formal Verification, this task, stays
+simple. All that happens is that the specification will grow, but reasoning
+about the specification, remains simple.

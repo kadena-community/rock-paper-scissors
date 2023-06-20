@@ -1,0 +1,5 @@
+(begin-tx)
+(load "rps-1.pact")
+(commit-tx)
+
+(verify "rock-paper-scissors")

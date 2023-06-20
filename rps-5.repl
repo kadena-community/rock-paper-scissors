@@ -1,0 +1,38 @@
+(begin-tx)
+(load "rps-5.pact")
+(commit-tx)
+
+(verify "rock-paper-scissors")
+
+(begin-tx)
+(rock-paper-scissors.commit 
+  "game-1"
+  "alice"
+  "bob"
+  (hash "rock-a-salt-that-should-be-random")
+  (hash "rock-a-different-salt-that-is-random"))
+(commit-tx)
+
+(begin-tx)
+(expect-failure
+  "Expect player one's move to be incorrect"
+  "Player 1 revealed move does not match saved move"
+  (rock-paper-scissors.reveal
+    "game-1"
+    "rock"
+    "incorrect-salt"
+    "rock"
+    "a-different-salt-that-is-random"))
+(commit-tx)
+
+(begin-tx)
+(expect-failure
+  "Expect player two's move to be incorrect"
+  "Player 2 revealed move does not match saved move"
+  (rock-paper-scissors.reveal
+    "game-1"
+    "rock"
+    "a-salt-that-should-be-random"
+    "rock"
+    "incorrect-salt"))
+(commit-tx)

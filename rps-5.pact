@@ -1,29 +1,22 @@
 (module rock-paper-scissors GOVERNANCE
   @model [
     (defproperty is-valid-move(move:string)
-      (or (= move ROCK) 
-          (or (= move PAPER) (= move SCISSORS))))
+      (or (= move "rock") 
+          (or (= move "paper") (= move "scissors"))))
     (defproperty allow-draw(move1:string move2:string)
-      (when (= move1 move2) (= result DRAW)))
+      (when (= move1 move2) (= result "Draw")))
     (defproperty allow-win(move1:string move2:string)
-      (when (or (and (= move1 ROCK) (= move2 SCISSORS))
-                (or (and (= move1 PAPER) (= move2 ROCK))
-                    (and (= move1 SCISSORS) (= move2 PAPER))))
-        (= result PLAYER1-WINS)))
+      (when (or (and (= move1 "rock") (= move2 "scissors"))
+                (or (and (= move1 "paper") (= move2 "rock"))
+                    (and (= move1 "scissors") (= move2 "paper"))))
+        (= result "Player 1 wins")))
     (defproperty allow-lose(move1:string move2:string)
-      (when (or (and (= move1 SCISSORS) (= move2 ROCK))
-                (or (and (= move1 ROCK) (= move2 PAPER))
-                    (and (= move1 PAPER) (= move2 SCISSORS))))
-        (= result PLAYER2-WINS)))
+      (when (or (and (= move1 "scissors") (= move2 "rock"))
+                (or (and (= move1 "rock") (= move2 "paper"))
+                    (and (= move1 "paper") (= move2 "scissors"))))
+        (= result "Player 2 wins")))
   ]
   (defcap GOVERNANCE() false)
-  (defconst ROCK 'rock)
-  (defconst PAPER 'paper)
-  (defconst SCISSORS 'scissors)
-
-  (defconst DRAW 'Draw)
-  (defconst PLAYER1-WINS "Player 1 wins")
-  (defconst PLAYER2-WINS "Player 2 wins")
 
   (defschema game
     player1      : string
@@ -46,8 +39,8 @@
 
   (defun enforce-valid-move(move:string)
     (enforce 
-      (or (= move ROCK) 
-      (or (= move PAPER) (= move SCISSORS)))
+      (or (= move "rock") 
+      (or (= move "paper") (= move "scissors")))
       "Invalid move"))
 
   (defun reveal(
@@ -74,11 +67,11 @@
         "Player 2 revealed move does not match saved move")
       (enforce-valid-move player1-move)
       (enforce-valid-move player2-move)
-      (cond ((= player1-move player2-move) DRAW)
-            ((and (= player1-move ROCK) (= player2-move SCISSORS)) PLAYER1-WINS)
-            ((and (= player1-move SCISSORS) (= player2-move PAPER)) PLAYER1-WINS)
-            ((and (= player1-move PAPER) (= player2-move ROCK)) PLAYER1-WINS)
-            PLAYER2-WINS)))
+      (cond ((= player1-move player2-move) "Draw")
+            ((and (= player1-move "rock") (= player2-move "scissors")) "Player 1 wins")
+            ((and (= player1-move "scissors") (= player2-move "paper")) "Player 1 wins")
+            ((and (= player1-move "paper") (= player2-move "rock")) "Player 1 wins")
+            "Player 2 wins")))
 
   )
 

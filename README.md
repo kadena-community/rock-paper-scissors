@@ -1,60 +1,35 @@
 # Using Formal Verification to specify your Smart Contract
 
-## Introduce Formal Verification
+## What is Formal Verification
 
-Definition of Formal Verification on wikipedia:
+Kadena’s smart contract language, [Pact](https://pact-language.readthedocs.io/en/stable/), is a powerful tool at our disposal. Pact assists developers in creating smart contracts on the [kadena blockchain](https://kadena.io/), called Formal Verification. So what is Formal Verification?
+The definition of Formal Verification on Wikipedia is as follows:
 
-> In the context of hardware and software systems, formal verification is the
-> act of proving or disproving the correctness of intended algorithms underlying
-> a system with respect to a certain formal specification or property, using
-> formal methods of mathematics.
+> In the context of hardware and software systems, formal verification is the act of proving or disproving the correctness of intended algorithms underlying a system with respect to a certain formal specification or property, using formal methods of mathematics.
 
-This can seem pretty daunting, I know it did for me. It feels like a very
-complicated system, that is out of reach for many developers. After using
-Formal Verification for a couple of months, I've changed my mind and with the
-steady stream of updates on the Formal Verification modules, I think it
-is a very strong asset any developer developing smart contracts should
-leverage.
+This may appear initially daunting–I know it certainly was for me. It seems like a complicated system that is out of reach for many developers. After using
+Formal Verification for a significant period of time, my perspective has changed. With the continuous stream of updates on the Formal Verification modules, I firmly believe that it is an exceptionally valuable asset that every developer engaged in smart contract development on the Kadena blockchain should leverage.
 
-## Why should we write Formal Verification
+## Why should we make use of Formal Verification
 
-Formal Verification allows you to specify the expected behaviors of your smart contract.
-You could specify your smart contract before you implement any logic. Allowing
-you to identify challenges upfront and come up with high level solutions. This
-way of thinking you to zoom in on a specific detail, while ignoring all other aspects.
+Formal Verification grants you the ability to verify the expected behaviors of your smart contract. By specifying your smart contract before you implement any logic, you can identify challenges upfront and devise high level solutions. This approach allows you to focus on specific details while disregarding other aspects.
+For example, I can zoom in on a single win condition of a game of Rock, Paper, Scissors, while ignoring all the other win conditions. You only need to specify that single win condition. Then you can proceed to specify the next win condition, and so on. This way, if your smart contract can be formally verified (i.e., a mathematical proof can be generated), it will satisfy all conditions without the need to write unit tests for all those use cases.
 
-For example, I can zoom in on a single win condition of a game of Rock, Paper, Scissors,
-while ignoring all the other win conditions. All I specify is, that single win condition.
-Then I can proceed to specify the next win condition and so on. Like this, I know that
-if my smart contract can be Formal Verified, it satisfies all conditions without
-writing unit tests for all those use cases.
+## Introducing the use case
 
-## Introduce our usecase
+Let’s create a smart contract that will govern a game of Rock, Paper, Scissors. In real-life gameplay, both players agree to reveal their move simultaneously.
+In a traditional web 2 application, both players can submit their move to a centralized server. However, if this centralized server for some reason is compromised, it can then lead to an unfair advantage for either player.
+Due to the decentralized nature of the blockchain, we are encouraged to distrust any involved party. To ensure a fair process that can be trusted without relying on trust in the involved parties, one approach is to commit your move in the first step and reveal your move in the second step.
+In this mini guide, we will show how Pact’s formal verification system can assist us in defining a smart contract.
 
-Let's create a smart contract that will govern a game of Rock, Paper, Scissors.
-Normally when you play in real life, both players are agreeing to reveal their
-move at the same time.
+## Define your interface
 
-In a traditional web 2 application, both players could submit their move to an
-centralized server. If this centralized server for some reason is compromised,
-it could lead to some unfair advantage of either player.
+We start off by defining a smart contract, `rps.pact` with the following content.
 
-Due to the decentralized nature of the blockchain, we are taught to distrust any
-involved party. A way to provide a fair process that can be trusted, without trusting
-the involved parties, could be to commit your move in the first step and reveal
-your move in the second step.
-
-In this mini guide, we will show how Formal Verification can help guide us
-through the process of defining a Smart Contract.
-
-## Define interface
-
-We start off by defining a smart contract, `rps.pact` with the
-following content.
-
-```clojure
+```pact
 (module rock-paper-scissors GOVERNANCE
-  (defcap GOVERNANCE() false)
+  (defcap GOVERNANCE()
+    (enforce false "Prevent this contract from upgrading"))
 
   (defun commit(
     id           : string
@@ -75,33 +50,24 @@ following content.
   )
 ```
 
-This scaffolds our initial interface, where we have a `rock-paper-scissors`
-module containing two functions, `commit` and `reveal`.
+This scaffolds our initial interface, where we have a `rock-paper-scissors` module containing two functions, `commit` and `reveal`. We can prepare a test file that will act as our playground, `rps.repl` with the following contents:
 
-We can prepare a test file that will act as our playground, `rps.repl` with
-the following contents:
-
-```clojure
+```pact
 (begin-tx)
-(load "rps-1.pact")
+(load "rps.pact")
 (commit-tx)
 
 (verify "rock-paper-scissors")
 ```
 
 This loads our smart contract into our test environment and performs a
-verification of the defined model, once defined. Our current contract
-does not contain any model definition, so it doesn't do much yet.
+verification of the defined model. `verify` will perform the verification of our model. Our current contract lacks a model definition, rendering it functionally limited at the moment. You can run the `rps.repl` with pact via command line: `pact -t rps.repl`
 
 ## Specify your expectations
 
-Now we can start specifying our model for our game. First let's specify
-what the valid moves are. We can first define a `reusable` property
-`is-valid-move`. This property simply checks if the provided move
-is either `rock`, `paper` or `scissors`, returning `true` if valid
-and `false` if invalid.
+Now we can start specifying our model for our game. First let’s specify what the valid moves are. We can first define a `reusable` property `is-valid-move`. This property simply checks if the provided move is either `rock`, `paper` or `scissors`, returning `true` if valid and `false` if invalid.
 
-```clojure
+```pact
 (module rock-paper-scissors GOVERNANCE
   @model [
     (defproperty is-valid-move(move:string)
@@ -110,10 +76,10 @@ and `false` if invalid.
   ]
 ```
 
-Now we can specify the moves provided in the `reveal` function:
+We can now specify the moves provided in the reveal function:
 
-```clojure
-  (defun reveal(
+```pact
+(defun reveal(
     id           : string
     player1-move : string
     player1-salt : string
@@ -127,49 +93,38 @@ Now we can specify the moves provided in the `reveal` function:
   )
 ```
 
-Now if we would run the `rps.repl` it will validate the smart contract and
-produce the following error:
+If we run the `rps.repl`, it will validate the smart contract and produce the following error:
 
 ```sh
 rps.pact:24:16:OutputFailure: Invalidating model found in rock-paper-scissors.reveal
-  Program trace:
-    entering function rock-paper-scissors.reveal with arguments
-      id = ""
-      player1-move = ""
-      player1-salt = ""
-      player2-move = ""
-      player2-salt = ""
+Program trace:
+entering function rock-paper-scissors.reveal with arguments
+id = ""
+player1-move = ""
+player1-salt = ""
+player2-move = ""
+player2-salt = ""
 
-      returning with 0
-
+     returning with 0
 
 rps.pact:25:16:OutputFailure: Invalidating model found in rock-paper-scissors.reveal
-  Program trace:
-    entering function rock-paper-scissors.reveal with arguments
-      id = ""
-      player1-move = ""
-      player1-salt = ""
-      player2-move = ""
-      player2-salt = ""
+Program trace:
+entering function rock-paper-scissors.reveal with arguments
+id = ""
+player1-move = ""
+player1-salt = ""
+player2-move = ""
+player2-salt = ""
 
-      returning with 0
-
+     returning with 0
 
 Load successful
 ```
 
-It outputs notifies about two invalidating models and provides the input
-used to reach this state, along with the result it produced. In general
-when your model is invalidated, you'd expect the transaction to fail.
-This is how we know if we have guarded our smart contract enough once
-implemented.
+It notifies about two invalidating models and provides the input used to reach this state, along with the [result](https://pact-language.readthedocs.io/en/stable/pact-properties-api.html?highlight=result#result) it produced. In general, when our model is invalidated, the transaction is expected to fail. This information helps us understand and address any issues or inconsistencies in the smart contract.
+Now we can specify win, lose and draw conditions. For simplicity’s sake, I will be specifying from player one’s perspective. The result keyword refers to a value that the function will output. Note that we have defined 3 different possible outcomes: `Player 1 wins`, `Player 2 wins` or `Draw`.
 
-Now we can specify win, lose and draw conditions. For simplicity sake
-I'll be specifying from player one's perspective. The `result` keyword
-refers to what the function will output. Note that we have defined
-3 different possible outcomes: `Player 1 wins`, `Player 2 wins` or `Draw`.
-
-```clojure
+```pact
 (module rock-paper-scissors GOVERNANCE
   @model [
     (defproperty allow-draw(move1:string move2:string)
@@ -187,13 +142,10 @@ refers to what the function will output. Note that we have defined
   ]
 ```
 
-Now we can use these properties to specify how our `reveal` function
-should behave. As the result is now specified to be a string of either
-`Player 1 wins`, `Player 2 wins` or `Draw`, we need to update the return
-value to match accordingly.
+We can then use these properties to specify how our reveal function should behave. As the result is now specified to be a string of either `Player 1 wins`, `Player 2 wins` or `Draw`, we need to update the return value to match accordingly.
 
-```clojure
-  (defun reveal(
+```pact
+(defun reveal(
     id           : string
     player1-move : string
     player1-salt : string
@@ -210,20 +162,12 @@ value to match accordingly.
   )
 ```
 
-Formal Verification still has some limitations. We are not able to
-specify behaviors around the `hash` function. We want to specify how
-a move is committed by specifying how it can be revealed. To work around
-this limitation, we will make use of the `expect-failure` in the `.repl`
-environment.
+We are unable to provide a detailed specification on how a move is committed, as it needs to remain a secret until revealed. However we can specify how a move is revealed, which indirectly outlines the process of committing a move. It is important to note that Formal Verification still has certain limitations. We are not able to specify behaviors around the `hash` function. To work around this limitation, we will make use of the `expect-failure` in the `.repl` environment.
+In this example, we want the player to submit a hash of their move concatenated with a random string. When it comes time to reveal, they will provide both their move and the random string to reproduce the hashed string. This process serves as proof that their revelation is truthful.
 
-In this example, we want the player to submit a hash of their move concatenated with
-a random string. When revealing, they will provide both their move and the random
-string in order to reproduce the hashed string. This will be proof that their
-revelation is thruthfull.
-
-```clojure
+```pact
 (begin-tx)
-(load "rps-4.pact")
+(load "rps.pact")
 (commit-tx)
 
 (verify "rock-paper-scissors")
@@ -264,15 +208,11 @@ revelation is thruthfull.
 
 ## Implement your contract
 
-Now we have all our expectations in place, we can start implementing
-our contract. We know if we haven't missed any use case when all
-tests are passing.
+Now that we established our expectations, we can proceed with implementing our contract. By ensuring that all tests pass, we can be confident that we haven’t overlooked any use cases.
+Given that we have specified a two-step process for committing and revealing moves, we need to create a table to store the committed move.
 
-As we have specified that the move has to be be committed and revealed
-in two steps, we need a table to store the committed move.
-
-```clojure
-  (defschema game
+```pact
+(defschema game
     player1      : string
     player2      : string
     player1-move : string
@@ -292,11 +232,10 @@ in two steps, we need a table to store the committed move.
       , 'player2-move : player2-move }))
 ```
 
-Now we can compare the submitted move with the revealed move and validate
-if no player is dishonest.
+Now we can compare the submitted move with the revealed move and validate that neither player is dishonest.
 
-```clojure
-  (defun enforce-valid-move(move:string)
+```pact
+(defun enforce-valid-move(move:string)
     (enforce
       (or (= move "rock")
       (or (= move "paper") (= move "scissors")))
@@ -332,24 +271,52 @@ if no player is dishonest.
             "Player 2 wins")))
 ```
 
-By using enforce statements, we can guard our function from any illigit
-entry. First of all we guard the function from processing any move
-that does not match the committed move. Since the move committed
-is not revealed up until now, we need to make sure that the move is
-valid to begin with.
+By using enforce statements, we can guard our function from any illicit
+entry. First, we guard the function against processing any move that does not match the committed move. Since the move committed has not been revealed yet, we need to verify that the move is valid from the start.
+Secondly, once we have established that the moves are valid, we can proceed to determine the result. By using `cond` we can specify a list of `Draw` and `Win` conditions. Once implemented, we can rerun the `.repl` and verify if we have satisfied our specifications.
+You can try and remove a `Player 1 wins` condition and see the verification fail. For example we can remove the win condition of `Scissors beats paper` for `Player 1`, and this will produce the following validation error:
 
-Now that we know that the moves are good to go, we can determine the result.
-By using `cond` we can specify a list of `Draw` and `Win` conditions. Once
-implemented, we can rerun the `.repl` and verify if we have satisfied our
-specifications.
+```sh
+rps.pact:63:16:OutputFailure: Invalidating model found in rock-paper-scissors.reveal
+Program trace:
+entering function rock-paper-scissors.reveal with arguments
+id = "!0!"
+player1-move = "scissors"
+player1-salt = ""
+player2-move = "paper"
+player2-salt = ""
 
-_Note: OutputWarnings will be displayed, due to the usage of `hash`. This is_
-_to warn developers of the substitutation of the hash function inside of_
-_the formal verification context._
+     read { player1-move: "HsVo-gcG-pk1BciGr2xovMyR7sVH0Kt9gTgqicXDXMM", player2-move: "HsVo-gcG-pk1BciGr2xovMyR7sVH0Kt9gTgqicXDXMM" } from games at key "!0!" succeeds
+     destructuring object
+       commited-player1-move := "HsVo-gcG-pk1BciGr2xovMyR7sVH0Kt9gTgqicXDXMM"
+       commited-player2-move := "HsVo-gcG-pk1BciGr2xovMyR7sVH0Kt9gTgqicXDXMM"
+       satisfied assertion: (= (hash (format "{}-{}" [player1-move player1-salt])) commited-player1-move)
 
+       satisfied assertion: (= (hash (format "{}-{}" [player2-move player2-salt])) commited-player2-move)
+
+       entering function rock-paper-scissors.enforce-valid-move with argument
+         move = "scissors"
+
+         satisfied assertion: (or (= move ROCK)
+     (or (= move PAPER) (= move SCISSORS)))
+
+         returning with True
+
+       entering function rock-paper-scissors.enforce-valid-move with argument
+         move = "paper"
+
+         satisfied assertion: (or (= move ROCK)
+     (or (= move PAPER) (= move SCISSORS)))
+
+         returning with True
+
+     returning with "Player 2 wins"
+```
+
+_Note: OutputWarnings will be displayed, due to the usage of `hash` for dynamic content (i.e., content that is not statically known). This is to warn developers of the substitution of the hash function inside of the formal verification context._
 After cleaning up our code and redefining the moves as constants we end up with the following contract:
 
-```
+```pact
 (module rock-paper-scissors GOVERNANCE
   @model [
     (defproperty is-valid-move(move:string)
@@ -437,11 +404,31 @@ After cleaning up our code and redefining the moves as constants we end up with 
 (create-table games)
 ```
 
+The result of running the `rps.repl` would yield:
+
+```sh
+rps.repl:1:0:Trace: Begin Tx 0
+rps.repl:2:0:Trace: Loading rps.pact...
+rps.pact:1:0:Trace: Loaded module rock-paper-scissors, hash lzAukKqAEHZnef_delbgI6NdOcQty03TZ8Plaw1Ja2g
+rps.pact:85:0:Trace: TableCreated
+rps.repl:3:0:Trace: Commit Tx 0
+rps.repl:5:0:Trace: Verification of rock-paper-scissors succeeded
+... removed OutputWarning messages ...
+rps.repl:7:0:Trace: Begin Tx 1
+rps.repl:8:0:Trace: Write succeeded
+rps.repl:14:0:Trace: Commit Tx 1
+rps.repl:16:0:Trace: Begin Tx 2
+rps.repl:17:0:Trace: Expect failure: success: Expect player one's move to be incorrect
+rps.repl:26:0:Trace: Commit Tx 2
+rps.repl:28:0:Trace: Begin Tx 3
+rps.repl:29:0:Trace: Expect failure: success: Expect player two's move to be incorrect
+rps.repl:38:0:Trace: Commit Tx 3
+rps.repl:40:0:Trace: Begin Tx 4
+rps.repl:41:0:Trace: Expect: success: true
+rps.repl:47:0:Trace: Commit Tx 4
+Load successful
+```
+
 ## Conclusion
 
-By specifying our desired outcome, we could without keeping the entire picture
-in mind, define our game. A game of Rock Paper Scissors, is still relatively
-easy to grasp, expand the game to have more options, and it get's increasingly
-difficult to keep all details in mind. With Formal Verification, this task, stays
-simple. All that happens is that the specification will grow, but reasoning
-about the specification, remains simple.
+By directing our attention to the desired outcome, we can efficiently define our game without the burden of constantly juggling all the intricate details. Although a game of Rock Paper Scissors is inherently straightforward, expanding it to include additional options can quickly become overwhelming to comprehend as a whole. Fortunately, with the aid of Formal Verification, this challenge becomes manageable. We can focus on specific details, addressing them one by one, and leverage the immense power of Formal Verification in our upcoming and future smart contract endeavors.
